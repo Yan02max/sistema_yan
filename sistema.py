@@ -1,76 +1,107 @@
 import streamlit as st
 
-st.set_page_config(page_title="Sistema Vacacional RVPI", layout="centered")
+st.set_page_config(
+    page_title="Sistema Vacacional RVPI",
+    layout="centered",
+    initial_sidebar_state="collapsed"
+)
 
 # =========================
-# CSS para estilo móvil tipo app
+# CSS para estilo app iPhone
 # =========================
 st.markdown("""
 <style>
 body {
-    background-color: #f0f2f6;
-    font-family: 'Arial', sans-serif;
+    font-family: 'Helvetica', sans-serif;
+    background-color: #f5f5f7;
+    color: #111;
 }
-h1 {
-    color: #4CAF50;
+
+h1, h2, h3 {
     text-align: center;
 }
+
 .stButton>button {
-    background-color: #4CAF50;
+    background-color: #007AFF;
     color: white;
     font-size: 20px;
-    border-radius: 12px;
-    padding: 15px 25px;
+    border-radius: 15px;
+    padding: 15px;
     margin: 5px 0;
     width: 100%;
+    transition: all 0.2s ease;
 }
 .stButton>button:hover {
-    background-color: #45a049;
+    background-color: #005BB5;
 }
+
 .output-box {
-    background-color: #e8f5e9;
+    background-color: #e0f7fa;
     padding: 15px;
-    border-radius: 12px;
+    border-radius: 15px;
     margin-top: 15px;
+    animation: fadeIn 0.5s;
 }
+
 .history-box {
-    background-color: #f0f9ff;
+    background-color: #f0f0f0;
     padding: 12px;
     border-radius: 12px;
     margin-top: 10px;
 }
+
+@keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+body[data-theme="dark"] {
+    background-color: #1c1c1e;
+    color: #f5f5f5;
+}
+body[data-theme="dark"] .output-box {
+    background-color: #004d40;
+    color: #f5f5f5;
+}
+body[data-theme="dark"] .history-box {
+    background-color: #333;
+    color: #f5f5f5;
+}
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🌴 Sistema Vacacional RVPI")
+# =========================
+# Título con emoji
+# =========================
+st.markdown("## 🌴 Sistema Vacacional RVPI")
 
 # =========================
-# Inicializar historial en sesión
+# Inicializar historial
 # =========================
-if 'historial' not in st.session_state:
+if "historial" not in st.session_state:
     st.session_state.historial = []
 
 # =========================
-# Selección de área mediante botones
+# Botones con íconos para áreas
 # =========================
 st.subheader("Selecciona tu área de trabajo:")
+
 col1, col2, col3 = st.columns(3)
 area_trabajo = None
 
-if col1.button("Atención al cliente"):
+if col1.button("👩‍💼 Atención al cliente"):
     area_trabajo = "P12345"
-if col2.button("Logística"):
+if col2.button("🚚 Logística"):
     area_trabajo = "R12345"
-if col3.button("Gerencia"):
+if col3.button("💼 Gerencia"):
     area_trabajo = "V12345"
 
 # =========================
 # Formulario de usuario
 # =========================
-with st.form("vacaciones_form"):
+with st.form("vacaciones_form", clear_on_submit=False):
     nombre = st.text_input("Nombre completo:")
     tiempo = st.number_input("Tiempo en la empresa (años):", min_value=0.0, step=0.1)
-
     submitted = st.form_submit_button("Calcular Vacaciones")
 
 # =========================
@@ -108,23 +139,27 @@ if submitted:
             dias_vacaciones = 30
 
     # =========================
-    # Mostrar resultados
+    # Mostrar resultados animados
     # =========================
     if area_nombre is None:
-        st.error("Por favor selecciona un área de trabajo.")
+        st.error("⚠️ Por favor selecciona un área de trabajo.")
     elif dias_vacaciones is None:
         mensaje = f"Lo sentimos {nombre}, aún no cumples los requisitos. No tienes derecho a vacaciones."
         st.warning(mensaje)
         st.session_state.historial.append(mensaje)
     else:
-        mensaje = f"Hola {nombre}!\nÁrea: {area_nombre}\nTe corresponden {dias_vacaciones} días de vacaciones. ¡Disfrútalos! 🎉"
+        mensaje = f"Hola {nombre}! 🎉\nÁrea: {area_nombre}\nTe corresponden {dias_vacaciones} días de vacaciones. ¡Disfrútalos! 🌴"
         st.markdown(f"<div class='output-box'>{mensaje.replace(chr(10), '<br>')}</div>", unsafe_allow_html=True)
         st.session_state.historial.append(mensaje)
 
 # =========================
-# Historial de consultas
+# Historial de consultas scrollable
 # =========================
 if st.session_state.historial:
     st.subheader("📜 Historial de consultas")
+    st.markdown(
+        "<div style='max-height:300px;overflow-y:auto;'>", unsafe_allow_html=True
+    )
     for idx, h in enumerate(reversed(st.session_state.historial), 1):
         st.markdown(f"<div class='history-box'>{idx}. {h.replace(chr(10), '<br>')}</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
