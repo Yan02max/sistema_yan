@@ -3,7 +3,7 @@ import streamlit as st
 st.set_page_config(page_title="Sistema Vacacional RVPI", layout="centered")
 
 # =========================
-# CSS para estilo moderno
+# CSS para estilo móvil tipo app
 # =========================
 st.markdown("""
 <style>
@@ -18,10 +18,11 @@ h1 {
 .stButton>button {
     background-color: #4CAF50;
     color: white;
-    font-size: 18px;
-    border-radius: 10px;
-    padding: 10px 20px;
-    margin: 5px;
+    font-size: 20px;
+    border-radius: 12px;
+    padding: 15px 25px;
+    margin: 5px 0;
+    width: 100%;
 }
 .stButton>button:hover {
     background-color: #45a049;
@@ -29,7 +30,13 @@ h1 {
 .output-box {
     background-color: #e8f5e9;
     padding: 15px;
-    border-radius: 10px;
+    border-radius: 12px;
+    margin-top: 15px;
+}
+.history-box {
+    background-color: #f0f9ff;
+    padding: 12px;
+    border-radius: 12px;
     margin-top: 10px;
 }
 </style>
@@ -38,12 +45,31 @@ h1 {
 st.title("🌴 Sistema Vacacional RVPI")
 
 # =========================
+# Inicializar historial en sesión
+# =========================
+if 'historial' not in st.session_state:
+    st.session_state.historial = []
+
+# =========================
+# Selección de área mediante botones
+# =========================
+st.subheader("Selecciona tu área de trabajo:")
+col1, col2, col3 = st.columns(3)
+area_trabajo = None
+
+if col1.button("Atención al cliente"):
+    area_trabajo = "P12345"
+if col2.button("Logística"):
+    area_trabajo = "R12345"
+if col3.button("Gerencia"):
+    area_trabajo = "V12345"
+
+# =========================
 # Formulario de usuario
 # =========================
 with st.form("vacaciones_form"):
-    inf_trabajador = st.text_input("Coloca tu nombre completo:")
-    inf_2 = st.text_input("Introduce la clave de área (P12345, R12345, V12345):")
-    inf_3 = st.number_input("Introduce el tiempo que llevas con nosotros (años):", min_value=0.0, step=0.1)
+    nombre = st.text_input("Nombre completo:")
+    tiempo = st.number_input("Tiempo en la empresa (años):", min_value=0.0, step=0.1)
 
     submitted = st.form_submit_button("Calcular Vacaciones")
 
@@ -52,46 +78,53 @@ with st.form("vacaciones_form"):
 # =========================
 if submitted:
     dias_vacaciones = None
-    area_trabajo = None
+    area_nombre = None
 
-    if inf_2 == "P12345":
-        area_trabajo = "Atención al cliente"
-        if 1 <= inf_3 < 2:
+    if area_trabajo == "P12345":
+        area_nombre = "Atención al cliente"
+        if 1 <= tiempo < 2:
             dias_vacaciones = 6
-        elif 2 <= inf_3 <= 6:
+        elif 2 <= tiempo <= 6:
             dias_vacaciones = 14
-        elif inf_3 >= 7:
+        elif tiempo >= 7:
             dias_vacaciones = 20
 
-    elif inf_2 == "R12345":
-        area_trabajo = "Logística"
-        if 1 <= inf_3 < 2:
+    elif area_trabajo == "R12345":
+        area_nombre = "Logística"
+        if 1 <= tiempo < 2:
             dias_vacaciones = 7
-        elif 2 <= inf_3 <= 6:
+        elif 2 <= tiempo <= 6:
             dias_vacaciones = 15
-        elif inf_3 >= 7:
+        elif tiempo >= 7:
             dias_vacaciones = 22
 
-    elif inf_2 == "V12345":
-        area_trabajo = "Gerencia"
-        if 1 <= inf_3 < 2:
+    elif area_trabajo == "V12345":
+        area_nombre = "Gerencia"
+        if 1 <= tiempo < 2:
             dias_vacaciones = 10
-        elif 2 <= inf_3 <= 6:
+        elif 2 <= tiempo <= 6:
             dias_vacaciones = 20
-        elif inf_3 >= 7:
+        elif tiempo >= 7:
             dias_vacaciones = 30
 
     # =========================
-    # Resultados
+    # Mostrar resultados
     # =========================
-    if area_trabajo is None:
-        st.error("Área no registrada.")
+    if area_nombre is None:
+        st.error("Por favor selecciona un área de trabajo.")
     elif dias_vacaciones is None:
-        st.warning(f"Lo sentimos {inf_trabajador}, aún no cumples con los requisitos de la empresa. No tienes derecho a vacaciones.")
+        mensaje = f"Lo sentimos {nombre}, aún no cumples los requisitos. No tienes derecho a vacaciones."
+        st.warning(mensaje)
+        st.session_state.historial.append(mensaje)
     else:
-        st.markdown(f"<div class='output-box'>"
-                    f"<h3>Hola {inf_trabajador}</h3>"
-                    f"<p>Área de trabajo: <b>{area_trabajo}</b></p>"
-                    f"<p>Correspondes a <b>{dias_vacaciones} días de vacaciones</b>.</p>"
-                    f"<p>¡Que disfrutes tus vacaciones! 🎉</p>"
-                    f"</div>", unsafe_allow_html=True)
+        mensaje = f"Hola {nombre}!\nÁrea: {area_nombre}\nTe corresponden {dias_vacaciones} días de vacaciones. ¡Disfrútalos! 🎉"
+        st.markdown(f"<div class='output-box'>{mensaje.replace(chr(10), '<br>')}</div>", unsafe_allow_html=True)
+        st.session_state.historial.append(mensaje)
+
+# =========================
+# Historial de consultas
+# =========================
+if st.session_state.historial:
+    st.subheader("📜 Historial de consultas")
+    for idx, h in enumerate(reversed(st.session_state.historial), 1):
+        st.markdown(f"<div class='history-box'>{idx}. {h.replace(chr(10), '<br>')}</div>", unsafe_allow_html=True)
